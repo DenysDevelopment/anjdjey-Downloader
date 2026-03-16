@@ -1,0 +1,20 @@
+{
+  "name": "anjdjey-downloader",
+  "private": true,
+  "workspaces": ["shared", "server", "bot", "web"],
+  "scripts": {
+    "dev:server": "yarn workspace anjdjey-server dev",
+    "dev:bot": "yarn workspace anjdjey-bot dev",
+    "dev:web": "yarn workspace anjdjey-web dev",
+    "build:server": "yarn workspace anjdjey-server build",
+    "build:bot": "yarn workspace anjdjey-bot build",
+    "build:web": "yarn workspace anjdjey-web build",
+    "db:migrate": "yarn workspace anjdjey-server db:migrate",
+    "db:generate": "yarn workspace anjdjey-server db:generate",
+    "db:seed": "yarn workspace anjdjey-server db:seed",
+    "db:studio": "yarn workspace anjdjey-server db:studio",
+    "test": "yarn workspace anjdjey-server test",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  }
+}

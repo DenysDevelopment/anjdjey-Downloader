@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Platform {
+  TIKTOK
+  YOUTUBE
+  INSTAGRAM
+  FACEBOOK
+  TWITTER
+  PINTEREST
+  REDDIT
+  VIMEO
+  LIKEE
+  THREADS
+  UNKNOWN
+}
+
+enum DownloadStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum DownloadSource {
+  WEB
+  TELEGRAM
+  API
+}
+
+enum VideoQuality {
+  BEST
+  HD_1080
+  HD_720
+  SD_480
+  SD_360
+  AUDIO_ONLY
+}
+
+model Download {
+  id             String         @id @default(uuid())
+  originalUrl    String
+  platform       Platform
+  source         DownloadSource
+  status         DownloadStatus @default(QUEUED)
+  quality        VideoQuality   @default(BEST)
+
+  // Метаданные
+  title          String?
+  description    String?
+  duration       Int?
+  thumbnailUrl   String?
+  originalAuthor String?
+  viewCount      Int?
+  likeCount      Int?
+  resolution     String?
+
+  // Результат
+  fileId         String?        @unique
+  fileName       String?
+  filePath       String?
+  fileSize       Int?
+  mimeType       String?
+  downloadUrl    String?
+
+  // Обработка
+  jobId          String?        @unique
+  processingTime Int?
+  retryCount     Int            @default(0)
+  errorMessage   String?
+
+  // Телеграм
+  telegramUserId BigInt?
+  telegramChatId BigInt?
+
+  // Отслеживание
+  ipAddress      String?
+  userAgent      String?
+  countryCode    String?
+
+  expiresAt      DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  completedAt    DateTime?
+
+  @@index([status])
+  @@index([platform])
+  @@index([jobId])
+  @@index([fileId])
+  @@index([telegramUserId])
+  @@index([createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@index([expiresAt])
+}
+
+model DailyStats {
+  id             String   @id @default(uuid())
+  date           DateTime @unique @db.Date
+  totalDownloads Int      @default(0)
+  successCount   Int      @default(0)
+  failureCount   Int      @default(0)
+  uniqueUsers    Int      @default(0)
+  totalFileSize  BigInt   @default(0)
+  platformStats  Json     @default("{}")
+  sourceStats    Json     @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([date(sort: Desc)])
+}
+
+model CachedMetadata {
+  id          String   @id @default(uuid())
+  urlHash     String   @unique
+  originalUrl String
+  platform    Platform
+  metadata    Json
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([urlHash])
+  @@index([expiresAt])
+}
+
+model BlockedUrl {
+  id         String   @id @default(uuid())
+  urlPattern String   @unique
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@index([urlPattern])
+}
+
+model ProxyConfig {
+  id         String    @id @default(uuid())
+  url        String
+  isActive   Boolean   @default(true)
+  failCount  Int       @default(0)
+  lastUsedAt DateTime?
+  lastFailAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([isActive, failCount])
+}
