@@ -2,6 +2,7 @@
 
 FROM node:22-bookworm-slim AS deps
 WORKDIR /app
+ENV YOUTUBE_DL_SKIP_PYTHON_CHECK=1
 COPY package.json yarn.lock ./
 COPY shared/package.json shared/
 COPY server/package.json server/
