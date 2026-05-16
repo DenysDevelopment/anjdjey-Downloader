@@ -5,6 +5,7 @@ import { handleHelp } from './handlers/help';
 import { handleDownload } from './handlers/download';
 import { handleCallback } from './handlers/callback';
 import { rateLimitMiddleware } from './middleware/rate-limit';
+import { loadIconPacks } from './keyboards/icon-pack';
 import { logger } from '../utils/logger';
 import express from 'express';
 
@@ -33,6 +34,8 @@ export function setupBotWebhook(app: express.Express) {
 }
 
 export async function startBot() {
+  void loadIconPacks(bot);
+
   if (env.BOT_MODE === 'webhook' && env.WEBHOOK_DOMAIN) {
     await bot.api.setWebhook(
       `${env.WEBHOOK_DOMAIN}/api/bot/webhook/${env.WEBHOOK_SECRET}`,

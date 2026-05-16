@@ -1,5 +1,6 @@
 import type { Context } from 'grammy';
 import { parseCallbackData } from '../keyboards/format-select';
+import { customEmoji, htmlEscape } from '../keyboards/custom-emoji';
 import { apiClient } from '../../services/api-client';
 import { sendFileToUser } from '../../services/file-sender';
 import { logger } from '../../utils/logger';
@@ -17,7 +18,9 @@ export async function handleCallback(ctx: Context) {
   await ctx.answerCallbackQuery({ text: 'Начинаю скачивание...' });
 
   await ctx.editMessageText(
-    `Скачиваю видео в качестве ${qualityLabel(parsed.quality)}...\nПодождите, это может занять некоторое время.`,
+    `${customEmoji('⏳')} Скачиваю видео в качестве <b>${htmlEscape(qualityLabel(parsed.quality))}</b>...\n` +
+      `Это может занять некоторое время.`,
+    { parse_mode: 'HTML' },
   );
 
   try {
@@ -30,7 +33,9 @@ export async function handleCallback(ctx: Context) {
 
     // Если из кэша — сразу отправляем
     if (submitResult.status === 'COMPLETED' && submitResult.fileId) {
-      await ctx.editMessageText('Файл найден в кэше! Отправляю...');
+      await ctx.editMessageText(`${customEmoji('⚡')} Файл найден в кэше! Отправляю...`, {
+        parse_mode: 'HTML',
+      });
       const status = await apiClient.getStatus(submitResult.jobId);
       await sendFileToUser(
         ctx,
@@ -49,7 +54,10 @@ export async function handleCallback(ctx: Context) {
       const status = await apiClient.getStatus(submitResult.jobId);
 
       if (status.status === 'COMPLETED' && status.fileId) {
-        await ctx.editMessageText('Скачивание завершено! Отправляю файл...');
+        await ctx.editMessageText(
+          `${customEmoji('✅')} Скачивание завершено! Отправляю файл...`,
+          { parse_mode: 'HTML' },
+        );
         await sendFileToUser(
           ctx,
           status.fileId,
@@ -62,7 +70,9 @@ export async function handleCallback(ctx: Context) {
 
       if (status.status === 'FAILED') {
         await ctx.editMessageText(
-          `Не удалось скачать видео.\n\nПричина: ${status.errorMessage || 'Неизвестная ошибка'}`,
+          `${customEmoji('❌')} Не удалось скачать видео.\n\n` +
+            `Причина: ${htmlEscape(status.errorMessage || 'Неизвестная ошибка')}`,
+          { parse_mode: 'HTML' },
         );
         return;
       }
@@ -70,18 +80,25 @@ export async function handleCallback(ctx: Context) {
       // Обновляем прогресс
       if (status.progress && polls % 3 === 0) {
         await ctx
-          .editMessageText(`Скачиваю... ${status.progress}%`)
+          .editMessageText(`${customEmoji('⏳')} Скачиваю... ${status.progress}%`, {
+            parse_mode: 'HTML',
+          })
           .catch(() => {});
       }
 
       polls++;
     }
 
-    await ctx.editMessageText('Превышено время ожидания. Попробуйте ещё раз.');
+    await ctx.editMessageText(
+      `${customEmoji('⌛')} Превышено время ожидания. Попробуйте ещё раз.`,
+      { parse_mode: 'HTML' },
+    );
   } catch (err) {
     logger.error({ err, url: parsed.url }, 'Ошибка в callback');
     await ctx
-      .editMessageText('Произошла ошибка. Попробуйте ещё раз.')
+      .editMessageText(`${customEmoji('❌')} Произошла ошибка. Попробуйте ещё раз.`, {
+        parse_mode: 'HTML',
+      })
       .catch(() => {});
   }
 }

@@ -1,15 +1,17 @@
 import type { Context } from 'grammy';
+import { customEmoji } from '../keyboards/custom-emoji';
 
 export async function handleStart(ctx: Context) {
-  await ctx.reply(
-    `Привет! Я — бот ANJDJEY для скачивания видео.\n\n` +
-      `Отправь мне ссылку на видео из:\n` +
-      `- TikTok\n` +
-      `- YouTube\n` +
-      `- Instagram\n` +
-      `- Facebook\n` +
-      `- Twitter/X\n` +
-      `- Pinterest, Reddit, Vimeo\n\n` +
-      `Я скачаю видео и отправлю тебе!`,
-  );
+  const text =
+    `${customEmoji('👋')} <b>Привет!</b> Я — бот ANJDJEY для скачивания видео.\n\n` +
+    `${customEmoji('🔗')} Отправь мне ссылку на видео из:\n` +
+    `${customEmoji('🎵')} TikTok\n` +
+    `${customEmoji('▶️')} YouTube\n` +
+    `${customEmoji('📸')} Instagram\n` +
+    `${customEmoji('📘')} Facebook\n` +
+    `${customEmoji('🐦')} Twitter / X\n` +
+    `${customEmoji('📌')} Pinterest, Reddit, Vimeo\n\n` +
+    `${customEmoji('✨')} Я скачаю видео и отправлю тебе!`;
+
+  await ctx.reply(text, { parse_mode: 'HTML' });
 }
