@@ -28,7 +28,7 @@ router.get(
   '/:jobId',
   validate({ params: schemas.jobIdParams }),
   async (req: Request, res: Response) => {
-    const result = await getDownloadStatus(req.params.jobId);
+    const result = await getDownloadStatus(req.params.jobId as string);
     res.json({ success: true, data: result });
   },
 );

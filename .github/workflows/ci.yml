@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Typecheck, build, test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: anjdjey_downloader_test
+          POSTGRES_USER: ciuser
+          POSTGRES_PASSWORD: cipass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ciuser"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://ciuser:cipass@localhost:5432/anjdjey_downloader_test
+      REDIS_URL: redis://localhost:6379
+      BOT_TOKEN: ci-placeholder-token
+      NODE_ENV: test
+      NEXT_TELEMETRY_DISABLED: '1'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: yarn db:generate
+
+      - name: Apply migrations
+        run: yarn workspace anjdjey-server prisma migrate deploy
+
+      - name: Build server (tsc)
+        run: yarn build:server
+
+      - name: Build bot (tsc)
+        run: yarn build:bot
+
+      - name: Build web (next build)
+        run: yarn build:web
+
+      - name: Test (vitest)
+        run: yarn workspace anjdjey-server vitest run --passWithNoTests

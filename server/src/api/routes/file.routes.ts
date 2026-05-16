@@ -10,7 +10,7 @@ router.get(
   '/:fileId',
   validate({ params: schemas.fileIdParams }),
   async (req: Request, res: Response) => {
-    const file = await getDownloadFile(req.params.fileId);
+    const file = await getDownloadFile(req.params.fileId as string);
 
     res.setHeader('Content-Type', file.mimeType);
     res.setHeader(
